@@ -4,7 +4,7 @@ use 5.008008;
 use strict;
 use warnings;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 use POE qw( Filter::Reference  Filter::Line  Wheel::Run );
 use WWW::Google::Calculator;
@@ -21,13 +21,7 @@ sub spawn {
 
     delete $params{options}
         unless ref $params{options} eq 'HASH';
-    eval {
-        use WWW::Google::Calculator;
-    };
-
-    die "Could not load WWW::Google::Calculator, check that you have it\n"
-        if $@;
-
+    
     my $self = bless \%params, $package;
 
     $self->{session_id} = POE::Session->create(
@@ -450,25 +444,57 @@ event/method will be present intact in the result.
 
 Needs L<POE> and L<WWW::Google::Calculator>
 
-=head1 BUGS
-
-None that I know of.
-
 =head1 SEE ALSO
 
 L<POE> L<WWW::Google::Calculator>
 
 =head1 AUTHOR
 
-Zoffix Znet, E<lt>zoffix@cpan.orgE<gt>
+Zoffix Znet, C<< <zoffix at cpan.org> >>
+(L<http://zoffix.com>, L<http://haslayout.net>)
 
-=head1 COPYRIGHT AND LICENSE
+=head1 BUGS
 
-Copyright (C) 2008 by Zoffix Znet
+Please report any bugs or feature requests to C<bug-poe-component-www-google-calculator at rt.cpan.org>, or through
+the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=POE-Component-WWW-Google-Calculator>.  I will be notified, and then you'll
+automatically be notified of progress on your bug as I make changes.
 
-This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself, either Perl version 5.8.8 or,
-at your option, any later version of Perl 5 you may have available.
+=head1 SUPPORT
+
+You can find documentation for this module with the perldoc command.
+
+    perldoc POE::Component::WWW::Google::Calculator
+
+You can also look for information at:
+
+=over 4
+
+=item * RT: CPAN's request tracker
+
+L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=POE-Component-WWW-Google-Calculator>
+
+=item * AnnoCPAN: Annotated CPAN documentation
+
+L<http://annocpan.org/dist/POE-Component-WWW-Google-Calculator>
+
+=item * CPAN Ratings
+
+L<http://cpanratings.perl.org/d/POE-Component-WWW-Google-Calculator>
+
+=item * Search CPAN
+
+L<http://search.cpan.org/dist/POE-Component-WWW-Google-Calculator>
+
+=back
+
+=head1 COPYRIGHT & LICENSE
+
+Copyright 2008 Zoffix Znet, all rights reserved.
+
+This program is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
 
 
 =cut
+
+1; # End of POE::Component::WWW::Google::Calculator
