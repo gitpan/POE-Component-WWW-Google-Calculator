@@ -1,27 +1,25 @@
 package POE::Component::WWW::Google::Calculator;
 
-use 5.008008;
 use strict;
 use warnings;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 use POE qw( Filter::Reference  Filter::Line  Wheel::Run );
 use WWW::Google::Calculator;
 use Carp;
-
 sub spawn {
     my $package = shift;
     croak "$package requires an even number of arguments"
         if @_ & 1;
 
     my %params = @_;
-    
+
     $params{ lc $_ } = delete $params{ $_ } for keys %params;
 
     delete $params{options}
         unless ref $params{options} eq 'HASH';
-    
+
     my $self = bless \%params, $package;
 
     $self->{session_id} = POE::Session->create(
@@ -92,10 +90,10 @@ sub calc {
 sub _calc {
     my ( $kernel, $self ) = @_[ KERNEL, OBJECT ];
     my $sender = $_[SENDER]->ID;
-    
+
     return
         if $self->{shutdown};
-        
+
     my $args;
     if ( ref $_[ARG0] eq 'HASH' ) {
         $args = { %{ $_[ARG0] } };
@@ -104,7 +102,7 @@ sub _calc {
         warn "First parameter must be a hashref, trying to adjust...";
         $args = { @_[ARG0 .. $#_] };
     }
-    
+
     $args->{ lc $_ } = delete $args->{ $_ }
         for grep { !/^_/ } keys %{ $args };
 
@@ -112,12 +110,12 @@ sub _calc {
         warn "Missing 'event' parameter to calc";
         return;
     }
-    
+
     unless ( $args->{term} ) {
         warn "No 'term' parameter specified";
         return;
     }
-    
+
     if ( $args->{session} ) {
         if ( my $ref = $kernel->alias_resolve( $args->{session} ) ) {
             $args->{sender} = $ref->ID;
@@ -131,10 +129,10 @@ sub _calc {
     else {
         $args->{sender} = $sender;
     }
-    
+
     $kernel->refcount_increment( $args->{sender} => __PACKAGE__ );
     $self->{wheel}->put( $args );
-    
+
     undef;
 }
 
@@ -151,14 +149,14 @@ sub _shutdown {
         unless $self->{alias};
 
     $self->{shutdown} = 1;
-    
+
     $self->{wheel}->shutdown_stdin
         if $self->{wheel};
 }
 
 sub _child_closed {
     my ( $kernel, $self ) = @_[ KERNEL, OBJECT ];
-    
+
     warn "_child_closed called (@_[ARG0..$#_])\n"
         if $self->{debug};
 
@@ -191,13 +189,13 @@ sub _child_stderr {
 
 sub _child_stdout {
     my ( $kernel, $self, $input ) = @_[ KERNEL, OBJECT, ARG0 ];
-    
+
     my $session = delete $input->{sender};
     my $event   = delete $input->{event};
 
     $kernel->post( $session, $event, $input );
     $kernel->refcount_decrement( $session => __PACKAGE__ );
-    
+
     undef;
 }
 
@@ -206,13 +204,13 @@ sub _calc_wheel {
         binmode STDIN;
         binmode STDOUT;
     }
-    
+
     my $raw;
     my $size = 4096;
     my $filter = POE::Filter::Reference->new;
-    
+
     my $calculator = WWW::Google::Calculator->new;
-    
+
     while ( sysread STDIN, $raw, $size ) {
         my $requests = $filter->get( [ $raw ] );
         foreach my $req ( @$requests ) {
@@ -220,7 +218,7 @@ sub _calc_wheel {
             unless ( defined $req->{out} ) {
                 $req->{error} = $calculator->error;
             }
-            
+
             my $response = $filter->put( [ $req ] );
             print STDOUT @$response;
         }
@@ -230,6 +228,7 @@ sub _calc_wheel {
 1;
 __END__
 
+=encoding utf8
 
 =head1 NAME
 
@@ -240,19 +239,19 @@ around WWW::Google::Calculator
 
     use strict;
     use warnings;
-    
+
     use POE qw(Component::WWW::Google::Calculator);
-    
+
     my $poco = POE::Component::WWW::Google::Calculator->spawn( alias => 'calc' );
-    
+
     POE::Session->create(
         package_states => [
             'main' => [ qw( _start calc_result ) ],
         ],
     );
-    
+
     $poe_kernel->run;
-    
+
     sub _start {
         $poe_kernel->alias_set('foo');
         $poe_kernel->post( 'calc' => 'calc' => {
@@ -263,19 +262,19 @@ around WWW::Google::Calculator
             }
         );
     }
-    
+
     sub calc_result {
         my ( $kernel, $result ) = @_[ KERNEL, ARG0 ];
-        
+
         if ( $result->{error} ) {
             print "ZOMG! Error: $result->{error}\n";
         }
         else {
             print "Results: $result->{out}\n";
         }
-        
+
         print "Oh, and BTW: $result->{_random_name}\n";
-        
+
         $kernel->post( 'calc' => 'shutdown' );
     }
 
@@ -372,9 +371,9 @@ B<Mandatory>. An event to send the result to.
 =head3 session
 
     { session => $some_other_session_ref }
-    
+
     { session => 'some_alias' }
-    
+
     { session => $session->ID }
 
 B<Optional>. An alternative session alias, reference or ID that the
@@ -395,16 +394,16 @@ Takes no arguments. Tells the component to shut itself down.
 
     sub calc_result {
         my ( $kernel, $result ) = @_[ KERNEL, ARG0 ];
-        
+
         if ( $result->{error} ) {
             print "ZOMG! Error: $result->{error}\n";
         }
         else {
             print "Results: $result->{out}\n";
         }
-        
+
         print "Oh, and BTW: $result->{_random_name}\n";
-        
+
         $kernel->post( 'calc' => 'shutdown' );
     }
 
@@ -496,5 +495,3 @@ under the same terms as Perl itself.
 
 
 =cut
-
-1; # End of POE::Component::WWW::Google::Calculator

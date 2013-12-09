@@ -17,9 +17,13 @@ my $builder = Module::Build->new(
         'POE::Wheel::Run'         => 1.2179,
         'WWW::Google::Calculator' => 0.04,
         'Carp'                    => 1.04,
+        'perl'                    => '5.008008',
     },
+    configure_requires => { 'Module::Build' => 0 },
     add_to_cleanup      => [ 'POE-Component-WWW-Google-Calculator-*' ],
     create_makefile_pl => 'traditional',
 );
-
+if ( $ENV{RELEASE_TESTING} ) {
+    system('pod2text lib/POE/Component/WWW/Google/Calculator.pm > README');
+}
 $builder->create_build_script();

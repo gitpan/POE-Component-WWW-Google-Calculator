@@ -3,10 +3,12 @@
 use strict;
 use warnings;
 
+use lib qw(../lib  lib);
 die "Usage: perl calc.pl 'term to calculate'\n"
     unless @ARGV;
 
 my $Term = shift;
+
 
 use POE qw(Component::WWW::Google::Calculator);
 
@@ -34,3 +36,4 @@ sub calc {
     }
     $poco->shutdown;
 }
+
